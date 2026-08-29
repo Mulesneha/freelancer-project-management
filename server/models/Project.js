@@ -1,41 +1,34 @@
 const mongoose = require("mongoose");
 
 const projectSchema = new mongoose.Schema(
-    {
-        title: {
-            type: String,
-            required: true
-        },
-
-        description: {
-            type: String,
-            required: true
-        },
-
-        budget: {
-            type: Number,
-            required: true
-        },
-
-        status: {
-            type: String,
-            enum: ["pending", "active", "completed"],
-            default: "pending"
-        },
-
-        client: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: "User"
-        },
-
-        freelancer: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: "User"
-        }
+  {
+    title: {
+      type: String,
+      required: true,
+      trim: true,
     },
-    {
-        timestamps: true
-    }
+    description: {
+      type: String,
+      required: true,
+    },
+    budget: {
+      type: Number,
+      required: true,
+    },
+    skills: {
+      type: [String],
+      required: true,
+    },
+    deadline: {
+      type: Date,
+      required: true,
+    },
+  },
+  {
+    timestamps: true,
+  }
 );
 
-module.exports = mongoose.model("Project", projectSchema);
+const Project = mongoose.model("Project", projectSchema);
+
+module.exports = Project;
