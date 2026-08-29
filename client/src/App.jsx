@@ -1,23 +1,35 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 import ClientDashboard from "./pages/ClientDashboard";
+import CreateProject from "./pages/CreateProject";
 
 function App() {
   return (
     <Routes>
-      {/* Redirect homepage to dashboard */}
-      <Route path="/" element={<Navigate to="/client-dashboard" />} />
 
-      {/* Client Dashboard */}
-      <Route path="/client-dashboard" element={<ClientDashboard />} />
-
-      {/* Temporary page for testing */}
+      {/* Home */}
       <Route
-        path="/create-project"
-        element={<h1>Create Project Page Coming Soon 🚀</h1>}
+        path="/"
+        element={<Navigate to="/client-dashboard" replace />}
       />
 
-      {/* Redirect unknown URLs */}
-      <Route path="*" element={<Navigate to="/client-dashboard" />} />
+      {/* Client Dashboard */}
+      <Route
+        path="/client-dashboard"
+        element={<ClientDashboard />}
+      />
+
+      {/* Create Project */}
+      <Route
+        path="/create-project"
+        element={<CreateProject />}
+      />
+
+      {/* Unknown URL */}
+      <Route
+        path="*"
+        element={<Navigate to="/client-dashboard" replace />}
+      />
+
     </Routes>
   );
 }
