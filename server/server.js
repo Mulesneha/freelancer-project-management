@@ -9,7 +9,16 @@ const app = express();
 
 app.use(cors());
 app.use(express.json());
+app.use(cors());
+app.use(express.json());
 
+// Test route
+app.get("/", (req, res) => {
+  res.send("Freelancer Project Management API is running!");
+});
+
+// Project routes
+app.use("/api/projects", projectRoutes);
 // Routes
 app.use("/api/projects", projectRoutes);
 
