@@ -1,7 +1,80 @@
-import React from "react";
-import { Link } from "react-router-dom";
+import React, { useState } from "react";
+import { useNavigate, Link } from "react-router-dom";
 
 const CreateProject = () => {
+  const navigate = useNavigate();
+
+  const [formData, setFormData] = useState({
+    title: "",
+    description: "",
+    budget: "",
+    skills: "",
+  });
+
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  const handleChange = (e) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value,
+    });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    setLoading(true);
+    setError("");
+
+    try {
+      const token = localStorage.getItem("token");
+
+      if (!token) {
+        setError("Please login first.");
+        setLoading(false);
+        return;
+      }
+
+      const response = await fetch(
+        "http://localhost:5000/api/projects",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            title: formData.title,
+            description: formData.description,
+            budget: Number(formData.budget),
+            skills: formData.skills
+              .split(",")
+              .map((skill) => skill.trim())
+              .filter((skill) => skill !== ""),
+          }),
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Failed to create project");
+      }
+
+      alert("Project posted successfully! 🚀");
+
+      // Go back to dashboard
+      navigate("/client-dashboard");
+
+    } catch (error) {
+      console.error(error);
+      setError(error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-slate-100">
 
@@ -32,9 +105,15 @@ const CreateProject = () => {
             Post your project and find the right freelancer.
           </p>
 
-          <form className="space-y-6">
+          {error && (
+            <div className="bg-red-100 text-red-700 p-3 rounded-lg mb-5">
+              {error}
+            </div>
+          )}
 
-            {/* Project Title */}
+          <form onSubmit={handleSubmit} className="space-y-6">
+
+            {/* Title */}
             <div>
               <label className="block font-semibold text-gray-700 mb-2">
                 Project Title
@@ -42,7 +121,11 @@ const CreateProject = () => {
 
               <input
                 type="text"
+                name="title"
+                value={formData.title}
+                onChange={handleChange}
                 placeholder="Enter project title"
+                required
                 className="w-full border border-gray-300 rounded-lg px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
@@ -54,21 +137,30 @@ const CreateProject = () => {
               </label>
 
               <textarea
+                name="description"
+                value={formData.description}
+                onChange={handleChange}
                 rows="5"
                 placeholder="Describe your project..."
+                required
                 className="w-full border border-gray-300 rounded-lg px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500"
-              ></textarea>
+              />
             </div>
 
             {/* Budget */}
             <div>
               <label className="block font-semibold text-gray-700 mb-2">
-                Budget
+                Budget (₹)
               </label>
 
               <input
                 type="number"
-                placeholder="Enter budget in ₹"
+                name="budget"
+                value={formData.budget}
+                onChange={handleChange}
+                placeholder="Enter budget"
+                required
+                min="1"
                 className="w-full border border-gray-300 rounded-lg px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
@@ -81,17 +173,25 @@ const CreateProject = () => {
 
               <input
                 type="text"
-                placeholder="e.g. React, Node.js, MongoDB"
+                name="skills"
+                value={formData.skills}
+                onChange={handleChange}
+                placeholder="React, Node.js, MongoDB"
                 className="w-full border border-gray-300 rounded-lg px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500"
               />
+
+              <p className="text-sm text-gray-400 mt-1">
+                Separate skills using commas.
+              </p>
             </div>
 
-            {/* Button */}
+            {/* Submit */}
             <button
               type="submit"
-              className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition"
+              disabled={loading}
+              className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition disabled:bg-gray-400"
             >
-              Post Project
+              {loading ? "Posting Project..." : "Post Project"}
             </button>
 
           </form>
