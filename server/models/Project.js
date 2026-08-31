@@ -1,3 +1,4 @@
+
 const mongoose = require("mongoose");
 
 const projectSchema = new mongoose.Schema(
@@ -7,21 +8,43 @@ const projectSchema = new mongoose.Schema(
       required: true,
       trim: true,
     },
+
     description: {
       type: String,
       required: true,
+      trim: true,
     },
+
     budget: {
       type: Number,
       required: true,
+      min: 1,
     },
+
     skills: {
       type: [String],
       required: true,
+      default: [],
     },
+
     deadline: {
       type: Date,
       required: true,
+    },
+
+    // Project status
+    status: {
+      type: String,
+      enum: ["Open", "In Progress", "Completed"],
+      default: "Open",
+    },
+
+    // Freelancer information
+    freelancer: {
+      name: {
+        type: String,
+        default: "Not Assigned",
+      },
     },
   },
   {

@@ -1,3 +1,4 @@
+
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
@@ -7,30 +8,53 @@ const projectRoutes = require("./routes/projectRoutes");
 
 const app = express();
 
-app.use(cors());
-app.use(express.json());
-app.use(cors());
+// ===============================
+// MIDDLEWARE
+// ===============================
+
+// Allow requests from React frontend
+app.use(
+  cors({
+    origin: "http://localhost:5173",
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  })
+);
+
+// Parse JSON request body
 app.use(express.json());
 
-// Test route
+// ===============================
+// TEST ROUTE
+// ===============================
+
 app.get("/", (req, res) => {
-  res.send("Freelancer Project Management API is running!");
+  res.send("Freelancer Project Management API is running! 🚀");
 });
 
-// Project routes
+// ===============================
+// PROJECT ROUTES
+// ===============================
+
 app.use("/api/projects", projectRoutes);
-// Routes
-app.use("/api/projects", projectRoutes);
+
+// ===============================
+// MONGODB CONNECTION
+// ===============================
 
 mongoose
   .connect(process.env.MONGO_URI)
   .then(() => {
-    console.log("MongoDB connected successfully");
+    console.log("MongoDB connected successfully ✅");
   })
   .catch((error) => {
     console.error("MongoDB connection failed:", error.message);
     process.exit(1);
   });
+
+// ===============================
+// START SERVER
+// ===============================
 
 const PORT = process.env.PORT || 5000;
 
