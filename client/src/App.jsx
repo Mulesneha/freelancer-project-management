@@ -1,4 +1,6 @@
+```jsx
 import { Routes, Route, Navigate } from "react-router-dom";
+
 import ClientDashboard from "./pages/ClientDashboard";
 import CreateProject from "./pages/CreateProject";
 
@@ -6,7 +8,7 @@ function App() {
   return (
     <Routes>
 
-      {/* Home */}
+      {/* Homepage */}
       <Route
         path="/"
         element={<Navigate to="/client-dashboard" replace />}
@@ -35,3 +37,4 @@ function App() {
 }
 
 export default App;
+```
