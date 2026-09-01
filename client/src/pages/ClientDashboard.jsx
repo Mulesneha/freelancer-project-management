@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
@@ -7,73 +6,74 @@ const ClientDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
+  // Fetch projects from backend
   const fetchProjects = async () => {
     try {
       setLoading(true);
       setError("");
 
-      const response = await fetch("http://localhost:5000/api/projects");
+      const response = await fetch(
+        "http://localhost:5000/api/projects"
+      );
 
       const data = await response.json();
 
+      console.log("Projects received:", data);
+
       if (!response.ok) {
-        throw new Error(data.message || "Failed to fetch projects");
+        throw new Error(
+          data.message || "Failed to fetch projects"
+        );
       }
 
-      // Make sure data is an array
-      setProjects(Array.isArray(data) ? data : []);
+      if (Array.isArray(data)) {
+        setProjects(data);
+      } else {
+        setProjects([]);
+      }
+
     } catch (err) {
       console.error("Fetch projects error:", err);
-      setError("Unable to load projects. Make sure your server is running.");
+
+      setError(
+        "Unable to load projects. Make sure the backend server and MongoDB are running."
+      );
     } finally {
       setLoading(false);
     }
   };
 
+  // Load projects when dashboard opens
   useEffect(() => {
     fetchProjects();
   }, []);
 
-  const activeProjects = projects.filter(
-    (project) => project.status === "In Progress"
-  );
-
-  const completedProjects = projects.filter(
-    (project) => project.status === "Completed"
-  );
-
   return (
     <div className="min-h-screen bg-slate-100">
 
-      {/* Navbar */}
+      {/* ================= NAVBAR ================= */}
       <nav className="bg-white shadow-md px-6 py-4 flex justify-between items-center">
+
         <h1 className="text-2xl font-bold text-blue-600">
           FreelancerHub
         </h1>
 
-        <div className="flex gap-5 items-center">
+        <div className="flex items-center gap-4">
+
           <span className="text-gray-600">
             Welcome, Client 👋
           </span>
 
-          <button
-            onClick={() => {
-              localStorage.removeItem("token");
-              localStorage.removeItem("user");
-              window.location.href = "/";
-            }}
-            className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600"
-          >
-            Logout
-          </button>
         </div>
       </nav>
 
-      {/* Main */}
+
+      {/* ================= MAIN ================= */}
       <div className="max-w-7xl mx-auto p-6">
 
-        {/* Heading */}
+        {/* ================= HEADER ================= */}
         <div className="flex justify-between items-center mb-8">
+
           <div>
             <h2 className="text-3xl font-bold text-gray-800">
               Client Dashboard
@@ -84,25 +84,46 @@ const ClientDashboard = () => {
             </p>
           </div>
 
+
           <Link
             to="/create-project"
             className="bg-blue-600 text-white px-5 py-3 rounded-lg hover:bg-blue-700 transition"
           >
             + Post New Project
           </Link>
+
         </div>
 
-        {/* Error */}
+
+        {/* ================= ERROR ================= */}
         {error && (
-          <div className="bg-red-100 text-red-700 p-4 rounded-lg mb-6">
-            {error}
+          <div className="bg-red-100 border border-red-300 text-red-700 p-4 rounded-lg mb-6">
+
+            <p className="font-semibold">
+              Error
+            </p>
+
+            <p>
+              {error}
+            </p>
+
+            <button
+              onClick={fetchProjects}
+              className="mt-3 bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700"
+            >
+              Try Again
+            </button>
+
           </div>
         )}
 
-        {/* Statistics */}
+
+        {/* ================= STATISTICS ================= */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
 
+          {/* Total */}
           <div className="bg-white p-6 rounded-xl shadow-sm">
+
             <p className="text-gray-500">
               Total Projects
             </p>
@@ -110,43 +131,77 @@ const ClientDashboard = () => {
             <h3 className="text-3xl font-bold text-blue-600 mt-2">
               {projects.length}
             </h3>
+
           </div>
 
+
+          {/* Open */}
           <div className="bg-white p-6 rounded-xl shadow-sm">
+
             <p className="text-gray-500">
-              Active Projects
+              Open Projects
             </p>
 
             <h3 className="text-3xl font-bold text-orange-500 mt-2">
-              {activeProjects.length}
+              {projects.length}
             </h3>
+
           </div>
 
+
+          {/* Completed */}
           <div className="bg-white p-6 rounded-xl shadow-sm">
+
             <p className="text-gray-500">
               Completed Projects
             </p>
 
             <h3 className="text-3xl font-bold text-green-600 mt-2">
-              {completedProjects.length}
+              0
             </h3>
+
           </div>
 
         </div>
 
-        {/* Projects */}
-        <h2 className="text-2xl font-bold text-gray-800 mb-5">
-          My Projects
-        </h2>
 
-        {loading ? (
-          <div className="bg-white p-10 rounded-xl text-center">
-            <p className="text-gray-500">
+        {/* ================= PROJECT TITLE ================= */}
+        <div className="flex justify-between items-center mb-5">
+
+          <h2 className="text-2xl font-bold text-gray-800">
+            My Projects
+          </h2>
+
+          <button
+            onClick={fetchProjects}
+            className="border border-gray-300 bg-white px-4 py-2 rounded-lg hover:bg-gray-50"
+          >
+            🔄 Refresh
+          </button>
+
+        </div>
+
+
+        {/* ================= LOADING ================= */}
+        {loading && (
+          <div className="bg-white p-10 rounded-xl text-center shadow-sm">
+
+            <p className="text-gray-500 text-lg">
               Loading projects...
             </p>
+
           </div>
-        ) : projects.length === 0 ? (
-          <div className="bg-white p-10 rounded-xl text-center">
+        )}
+
+
+        {/* ================= NO PROJECTS ================= */}
+        {!loading && projects.length === 0 && !error && (
+
+          <div className="bg-white p-10 rounded-xl text-center shadow-sm">
+
+            <div className="text-5xl mb-4">
+              📂
+            </div>
 
             <h3 className="text-xl font-semibold text-gray-700">
               No projects yet
@@ -164,84 +219,118 @@ const ClientDashboard = () => {
             </Link>
 
           </div>
-        ) : (
+
+        )}
+
+
+        {/* ================= PROJECT CARDS ================= */}
+        {!loading && projects.length > 0 && (
+
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
 
             {projects.map((project) => (
+
               <div
                 key={project._id}
                 className="bg-white rounded-xl shadow-sm p-6 hover:shadow-lg transition"
               >
 
+                {/* Title + Status */}
                 <div className="flex justify-between items-start gap-3">
 
                   <h3 className="text-xl font-semibold text-gray-800">
                     {project.title}
                   </h3>
 
-                  <span
-                    className={`text-sm px-3 py-1 rounded-full whitespace-nowrap ${
-                      project.status === "Completed"
-                        ? "bg-green-100 text-green-700"
-                        : project.status === "In Progress"
-                        ? "bg-orange-100 text-orange-700"
-                        : "bg-blue-100 text-blue-700"
-                    }`}
-                  >
-                    {project.status || "Open"}
+                  <span className="text-sm px-3 py-1 rounded-full bg-blue-100 text-blue-700 whitespace-nowrap">
+                    Open
                   </span>
 
                 </div>
 
+
+                {/* Description */}
                 <p className="text-gray-500 mt-3">
                   {project.description}
                 </p>
 
-                <div className="border-t mt-5 pt-4 space-y-2">
 
+                {/* Details */}
+                <div className="border-t mt-5 pt-4 space-y-3">
+
+                  {/* Budget */}
                   <p>
                     <span className="font-semibold">
                       Budget:
                     </span>{" "}
-                    ₹{project.budget}
+                    ₹{Number(project.budget).toLocaleString("en-IN")}
                   </p>
 
+
+                  {/* Skills */}
                   <p>
                     <span className="font-semibold">
                       Skills:
                     </span>{" "}
-                    {Array.isArray(project.skills)
+                    {Array.isArray(project.skills) &&
+                    project.skills.length > 0
                       ? project.skills.join(", ")
                       : "Not specified"}
                   </p>
 
+
+                  {/* Deadline */}
                   <p>
                     <span className="font-semibold">
                       Deadline:
                     </span>{" "}
                     {project.deadline
-                      ? new Date(project.deadline).toLocaleDateString()
+                      ? new Date(
+                          project.deadline
+                        ).toLocaleDateString("en-IN")
                       : "Not specified"}
+                  </p>
+
+
+                  {/* Created Date */}
+                  <p>
+                    <span className="font-semibold">
+                      Posted:
+                    </span>{" "}
+                    {project.createdAt
+                      ? new Date(
+                          project.createdAt
+                        ).toLocaleDateString("en-IN")
+                      : "Recently"}
                   </p>
 
                 </div>
 
+
+                {/* View Project */}
                 <button
+                  onClick={() =>
+                    alert(
+                      `Project: ${project.title}`
+                    )
+                  }
                   className="mt-5 w-full border border-blue-600 text-blue-600 py-2 rounded-lg hover:bg-blue-600 hover:text-white transition"
                 >
                   View Project
                 </button>
 
               </div>
+
             ))}
 
           </div>
+
         )}
 
       </div>
+
     </div>
   );
 };
 
 export default ClientDashboard;
-
