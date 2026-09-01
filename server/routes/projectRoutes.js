@@ -14,6 +14,7 @@ router.post("/", async (req, res) => {
       deadline,
     } = req.body;
 
+    // Validation
     if (!title || !description || !budget || !deadline) {
       return res.status(400).json({
         message: "Please fill all required fields",
@@ -34,6 +35,7 @@ router.post("/", async (req, res) => {
       message: "Project created successfully",
       project: savedProject,
     });
+
   } catch (error) {
     console.error("Create project error:", error);
 
@@ -44,6 +46,7 @@ router.post("/", async (req, res) => {
   }
 });
 
+
 // GET ALL PROJECTS
 router.get("/", async (req, res) => {
   try {
@@ -52,13 +55,16 @@ router.get("/", async (req, res) => {
     });
 
     res.status(200).json(projects);
+
   } catch (error) {
     console.error("Get projects error:", error);
 
     res.status(500).json({
       message: "Failed to fetch projects",
+      error: error.message,
     });
   }
 });
+
 
 module.exports = router;
