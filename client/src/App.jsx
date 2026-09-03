@@ -4,6 +4,7 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import ClientDashboard from "./pages/ClientDashboard";
+import FreelancerDashboard from "./pages/FreelancerDashboard";
 import CreateProject from "./pages/CreateProject";
 
 function App() {
@@ -27,6 +28,11 @@ function App() {
       <Route
         path="/client-dashboard"
         element={<ClientDashboard />}
+      />
+
+      <Route
+        path="/freelancer-dashboard"
+        element={<FreelancerDashboard />}
       />
 
       <Route
