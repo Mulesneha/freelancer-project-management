@@ -23,7 +23,6 @@ const projectSchema = new mongoose.Schema(
 
     skills: {
       type: [String],
-      required: true,
       default: [],
     },
 
@@ -32,19 +31,22 @@ const projectSchema = new mongoose.Schema(
       required: true,
     },
 
-    // Project status
     status: {
       type: String,
       enum: ["Open", "In Progress", "Completed"],
       default: "Open",
     },
 
-    // Freelancer information
+    client: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
+
     freelancer: {
-      name: {
-        type: String,
-        default: "Not Assigned",
-      },
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      default: null,
     },
   },
   {
