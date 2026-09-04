@@ -7,7 +7,8 @@ const authRoutes = require("./routes/authRoutes");
 const projectRoutes = require("./routes/projectRoutes");
 
 const app = express();
-
+const bidRoutes = require("./routes/bidRoutes");
+app.use("/api/bids", bidRoutes);
 app.use(
   cors({
     origin: "http://localhost:5173",
