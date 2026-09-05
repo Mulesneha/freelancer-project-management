@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 
@@ -6,6 +7,7 @@ import Register from "./pages/Register";
 import ClientDashboard from "./pages/ClientDashboard";
 import FreelancerDashboard from "./pages/FreelancerDashboard";
 import CreateProject from "./pages/CreateProject";
+import ReviewProject from "./pages/ReviewProject";
 
 function App() {
   return (
@@ -38,6 +40,11 @@ function App() {
       <Route
         path="/create-project"
         element={<CreateProject />}
+      />
+
+      <Route
+        path="/review/:projectId"
+        element={<ReviewProject />}
       />
 
       <Route
