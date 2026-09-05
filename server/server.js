@@ -5,9 +5,10 @@ require("dotenv").config();
 
 const authRoutes = require("./routes/authRoutes");
 const projectRoutes = require("./routes/projectRoutes");
-
+const reviewRoutes = require("./routes/reviewRoutes");
 const app = express();
 const bidRoutes = require("./routes/bidRoutes");
+app.use("/api/reviews", reviewRoutes);
 app.use("/api/bids", bidRoutes);
 app.use(
   cors({
