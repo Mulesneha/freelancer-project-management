@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
@@ -18,6 +17,21 @@ const ClientDashboard = () => {
   // Sorting
   const [sortBy, setSortBy] = useState("newest");
 
+  // ================= GET USER =================
+
+  const getUser = () => {
+    try {
+      const savedUser = localStorage.getItem("user");
+
+      return savedUser ? JSON.parse(savedUser) : null;
+    } catch (error) {
+      console.error("Error parsing user:", error);
+      return null;
+    }
+  };
+
+  const user = getUser();
+
   // ================= FETCH PROJECTS =================
 
   const fetchProjects = async () => {
@@ -25,8 +39,18 @@ const ClientDashboard = () => {
       setLoading(true);
       setError("");
 
+      const token = localStorage.getItem("token");
+
       const response = await fetch(
-        "http://localhost:5000/api/projects"
+        "http://localhost:5000/api/projects",
+        {
+          headers: {
+            "Content-Type": "application/json",
+            ...(token && {
+              Authorization: `Bearer ${token}`,
+            }),
+          },
+        }
       );
 
       const data = await response.json();
@@ -48,7 +72,8 @@ const ClientDashboard = () => {
       console.error("Fetch projects error:", err);
 
       setError(
-        "Unable to load projects. Make sure the backend server and MongoDB are running."
+        err.message ||
+          "Unable to load projects. Make sure the backend server and MongoDB are running."
       );
     } finally {
       setLoading(false);
@@ -61,15 +86,22 @@ const ClientDashboard = () => {
     fetchProjects();
   }, []);
 
-  // ================= FILTER PROJECTS =================
+  // ================= LOGOUT =================
 
-  const filteredProjects = projects
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+
+    window.location.href = "/login";
+  };
+
+  // ================= FILTER + SORT =================
+
+  const filteredProjects = [...projects]
     .filter((project) => {
-      // ---------- SEARCH ----------
+      // SEARCH
 
-      const searchText = search
-        .toLowerCase()
-        .trim();
+      const searchText = search.toLowerCase().trim();
 
       const title =
         typeof project.title === "string"
@@ -83,7 +115,9 @@ const ClientDashboard = () => {
 
       const skills = Array.isArray(project.skills)
         ? project.skills
-            .map((skill) => String(skill).toLowerCase())
+            .map((skill) =>
+              String(skill).toLowerCase()
+            )
             .join(" ")
         : "";
 
@@ -93,7 +127,7 @@ const ClientDashboard = () => {
         description.includes(searchText) ||
         skills.includes(searchText);
 
-      // ---------- STATUS ----------
+      // STATUS
 
       const projectStatus =
         project.status || "Open";
@@ -102,7 +136,7 @@ const ClientDashboard = () => {
         statusFilter === "All" ||
         projectStatus === statusFilter;
 
-      // ---------- BUDGET ----------
+      // BUDGET
 
       const budget =
         Number(project.budget) || 0;
@@ -111,52 +145,58 @@ const ClientDashboard = () => {
 
       if (budgetFilter === "Below 10000") {
         matchesBudget = budget < 10000;
-      }
-
-      if (budgetFilter === "10000-50000") {
+      } else if (
+        budgetFilter === "10000-50000"
+      ) {
         matchesBudget =
           budget >= 10000 &&
           budget <= 50000;
-      }
-
-      if (budgetFilter === "Above 50000") {
+      } else if (
+        budgetFilter === "Above 50000"
+      ) {
         matchesBudget = budget > 50000;
       }
 
-      // ---------- DEADLINE ----------
+      // DEADLINE
 
       let matchesDeadline = true;
 
-      if (
-        deadlineFilter !== "All" &&
-        project.deadline
-      ) {
-        const today = new Date();
-        const deadline = new Date(project.deadline);
+      if (deadlineFilter !== "All") {
+        if (!project.deadline) {
+          matchesDeadline = false;
+        } else {
+          const today = new Date();
+          today.setHours(0, 0, 0, 0);
 
-        const difference =
-          deadline.getTime() -
-          today.getTime();
+          const deadline = new Date(
+            project.deadline
+          );
 
-        const daysLeft =
-          difference /
-          (1000 * 60 * 60 * 24);
+          deadline.setHours(0, 0, 0, 0);
 
-        if (deadlineFilter === "7days") {
-          matchesDeadline =
-            daysLeft >= 0 &&
-            daysLeft <= 7;
-        }
+          const difference =
+            deadline.getTime() -
+            today.getTime();
 
-        if (deadlineFilter === "30days") {
-          matchesDeadline =
-            daysLeft >= 0 &&
-            daysLeft <= 30;
-        }
+          const daysLeft =
+            difference /
+            (1000 * 60 * 60 * 24);
 
-        if (deadlineFilter === "Expired") {
-          matchesDeadline =
-            daysLeft < 0;
+          if (deadlineFilter === "7days") {
+            matchesDeadline =
+              daysLeft >= 0 &&
+              daysLeft <= 7;
+          } else if (
+            deadlineFilter === "30days"
+          ) {
+            matchesDeadline =
+              daysLeft >= 0 &&
+              daysLeft <= 30;
+          } else if (
+            deadlineFilter === "Expired"
+          ) {
+            matchesDeadline = daysLeft < 0;
+          }
         }
       }
 
@@ -167,7 +207,6 @@ const ClientDashboard = () => {
         matchesDeadline
       );
     })
-    // ================= SORT =================
     .sort((a, b) => {
       if (sortBy === "newest") {
         return (
@@ -236,10 +275,12 @@ const ClientDashboard = () => {
       project.status === "Completed"
   ).length;
 
+  // ================= RETURN =================
+
   return (
     <div className="min-h-screen bg-slate-100">
 
-      {/* ================= NAVBAR ================= */}
+      {/* NAVBAR */}
 
       <nav className="bg-white shadow-md px-6 py-4 flex justify-between items-center">
 
@@ -250,18 +291,25 @@ const ClientDashboard = () => {
         <div className="flex items-center gap-4">
 
           <span className="text-gray-600">
-            Welcome, Client 👋
+            Welcome, {user?.name || "Client"} 👋
           </span>
+
+          <button
+            onClick={handleLogout}
+            className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition"
+          >
+            Logout
+          </button>
 
         </div>
 
       </nav>
 
-      {/* ================= MAIN ================= */}
+      {/* MAIN */}
 
       <div className="max-w-7xl mx-auto p-6">
 
-        {/* ================= HEADER ================= */}
+        {/* HEADER */}
 
         <div className="flex flex-col md:flex-row justify-between md:items-center gap-4 mb-8">
 
@@ -272,8 +320,7 @@ const ClientDashboard = () => {
             </h2>
 
             <p className="text-gray-500 mt-1">
-              Manage your projects and freelancers
-              in one place.
+              Manage your projects and freelancers in one place.
             </p>
 
           </div>
@@ -287,18 +334,17 @@ const ClientDashboard = () => {
 
         </div>
 
-        {/* ================= ERROR ================= */}
+        {/* ERROR */}
 
         {error && (
+
           <div className="bg-red-100 border border-red-300 text-red-700 p-4 rounded-lg mb-6">
 
             <p className="font-semibold">
               Error
             </p>
 
-            <p>
-              {error}
-            </p>
+            <p>{error}</p>
 
             <button
               onClick={fetchProjects}
@@ -308,13 +354,12 @@ const ClientDashboard = () => {
             </button>
 
           </div>
+
         )}
 
-        {/* ================= STATISTICS ================= */}
+        {/* STATISTICS */}
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-
-          {/* Total */}
 
           <div className="bg-white p-6 rounded-xl shadow-sm">
 
@@ -328,8 +373,6 @@ const ClientDashboard = () => {
 
           </div>
 
-          {/* Open */}
-
           <div className="bg-white p-6 rounded-xl shadow-sm">
 
             <p className="text-gray-500">
@@ -342,8 +385,6 @@ const ClientDashboard = () => {
 
           </div>
 
-          {/* In Progress */}
-
           <div className="bg-white p-6 rounded-xl shadow-sm">
 
             <p className="text-gray-500">
@@ -355,8 +396,6 @@ const ClientDashboard = () => {
             </h3>
 
           </div>
-
-          {/* Completed */}
 
           <div className="bg-white p-6 rounded-xl shadow-sm">
 
@@ -372,7 +411,7 @@ const ClientDashboard = () => {
 
         </div>
 
-        {/* ================= SEARCH & FILTER ================= */}
+        {/* SEARCH AND FILTER */}
 
         <div className="bg-white p-6 rounded-xl shadow-sm mb-8">
 
@@ -401,7 +440,7 @@ const ClientDashboard = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
 
-            {/* ================= SEARCH ================= */}
+            {/* SEARCH */}
 
             <div className="lg:col-span-2">
 
@@ -429,7 +468,7 @@ const ClientDashboard = () => {
 
             </div>
 
-            {/* ================= STATUS ================= */}
+            {/* STATUS */}
 
             <div>
 
@@ -465,7 +504,7 @@ const ClientDashboard = () => {
 
             </div>
 
-            {/* ================= BUDGET ================= */}
+            {/* BUDGET */}
 
             <div>
 
@@ -501,7 +540,7 @@ const ClientDashboard = () => {
 
             </div>
 
-            {/* ================= DEADLINE ================= */}
+            {/* DEADLINE */}
 
             <div>
 
@@ -539,7 +578,7 @@ const ClientDashboard = () => {
 
           </div>
 
-          {/* ================= SORT ================= */}
+          {/* SORT */}
 
           <div className="mt-5 flex flex-col md:flex-row gap-4 items-start md:items-end">
 
@@ -592,7 +631,7 @@ const ClientDashboard = () => {
 
         </div>
 
-        {/* ================= PROJECT TITLE ================= */}
+        {/* PROJECT TITLE */}
 
         <div className="flex flex-col md:flex-row justify-between md:items-center gap-3 mb-5">
 
@@ -603,15 +642,21 @@ const ClientDashboard = () => {
             </h2>
 
             <p className="text-gray-500 text-sm mt-1">
+
               Showing{" "}
+
               <span className="font-semibold text-gray-700">
                 {filteredProjects.length}
-              </span>{" "}
-              of{" "}
+              </span>
+
+              {" "}of{" "}
+
               <span className="font-semibold text-gray-700">
                 {projects.length}
-              </span>{" "}
-              projects
+              </span>
+
+              {" "}projects
+
             </p>
 
           </div>
@@ -625,9 +670,10 @@ const ClientDashboard = () => {
 
         </div>
 
-        {/* ================= LOADING ================= */}
+        {/* LOADING */}
 
         {loading && (
+
           <div className="bg-white p-10 rounded-xl text-center shadow-sm">
 
             <p className="text-gray-500 text-lg">
@@ -635,9 +681,10 @@ const ClientDashboard = () => {
             </p>
 
           </div>
+
         )}
 
-        {/* ================= NO PROJECTS ================= */}
+        {/* NO PROJECTS */}
 
         {!loading &&
           filteredProjects.length === 0 &&
@@ -668,7 +715,7 @@ const ClientDashboard = () => {
 
           )}
 
-        {/* ================= PROJECT CARDS ================= */}
+        {/* PROJECT CARDS */}
 
         {!loading &&
           filteredProjects.length > 0 && (
@@ -686,8 +733,6 @@ const ClientDashboard = () => {
                     key={project._id}
                     className="bg-white rounded-xl shadow-sm p-6 hover:shadow-lg transition"
                   >
-
-                    {/* TITLE + STATUS */}
 
                     <div className="flex justify-between items-start gap-3">
 
@@ -709,38 +754,32 @@ const ClientDashboard = () => {
 
                     </div>
 
-                    {/* DESCRIPTION */}
-
-                    <p className="text-gray-500 mt-3 line-clamp-3">
+                    <p className="text-gray-500 mt-3">
                       {project.description}
                     </p>
 
-                    {/* DETAILS */}
-
                     <div className="border-t mt-5 pt-4 space-y-3">
-
-                      {/* BUDGET */}
 
                       <p>
 
                         <span className="font-semibold">
                           Budget:
-                        </span>{" "}
+                        </span>
 
-                        ₹
+                        {" "}₹
                         {Number(
                           project.budget || 0
                         ).toLocaleString("en-IN")}
 
                       </p>
 
-                      {/* SKILLS */}
-
                       <p>
 
                         <span className="font-semibold">
                           Skills:
-                        </span>{" "}
+                        </span>
+
+                        {" "}
 
                         {Array.isArray(project.skills) &&
                         project.skills.length > 0
@@ -749,13 +788,13 @@ const ClientDashboard = () => {
 
                       </p>
 
-                      {/* DEADLINE */}
-
                       <p>
 
                         <span className="font-semibold">
                           Deadline:
-                        </span>{" "}
+                        </span>
+
+                        {" "}
 
                         {project.deadline
                           ? new Date(
@@ -767,13 +806,13 @@ const ClientDashboard = () => {
 
                       </p>
 
-                      {/* POSTED */}
-
                       <p>
 
                         <span className="font-semibold">
                           Posted:
-                        </span>{" "}
+                        </span>
+
+                        {" "}
 
                         {project.createdAt
                           ? new Date(
@@ -786,8 +825,6 @@ const ClientDashboard = () => {
                       </p>
 
                     </div>
-
-                    {/* VIEW PROJECT */}
 
                     <button
                       onClick={() =>

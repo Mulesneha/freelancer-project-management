@@ -8,10 +8,14 @@ import ClientDashboard from "./pages/ClientDashboard";
 import FreelancerDashboard from "./pages/FreelancerDashboard";
 import CreateProject from "./pages/CreateProject";
 import ReviewProject from "./pages/ReviewProject";
-
+import Notifications from "./pages/Notifications";
 function App() {
   return (
     <Routes>
+      <Route
+  path="/notifications"
+  element={<Notifications />}
+/>
       <Route
         path="/"
         element={<Navigate to="/login" replace />}
@@ -52,6 +56,7 @@ function App() {
         element={<Navigate to="/login" replace />}
       />
     </Routes>
+    
   );
 }
 
