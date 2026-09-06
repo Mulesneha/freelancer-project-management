@@ -10,7 +10,7 @@ const bidRoutes = require("./routes/bidRoutes");
 const reviewRoutes = require("./routes/reviewRoutes");
 
 const app = express();
-
+app.use("/api/notifications", notificationRoutes);
 app.use(
   cors({
     origin: "http://localhost:5173",
@@ -40,7 +40,7 @@ app.use("/api/projects", projectRoutes);
 app.use("/api/bids", bidRoutes);
 
 app.use("/api/reviews", reviewRoutes);
-
+app.use("/api/notifications", notificationRoutes);
 app.use((req, res) => {
   res.status(404).json({
     message: `Route not found: ${req.method} ${req.originalUrl}`,
