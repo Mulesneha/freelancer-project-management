@@ -8,14 +8,28 @@ const {
   updateBidStatus,
 } = require("../controllers/bidController");
 
+const authMiddleware = require("../middleware/authMiddleware");
+
 const router = express.Router();
 
-router.post("/", createBid);
+router.post("/", authMiddleware, createBid);
 
-router.get("/project/:projectId", getProjectBids);
+router.get(
+  "/project/:projectId",
+  authMiddleware,
+  getProjectBids
+);
 
-router.get("/freelancer", getFreelancerBids);
+router.get(
+  "/my-bids",
+  authMiddleware,
+  getFreelancerBids
+);
 
-router.put("/:id/status", updateBidStatus);
+router.put(
+  "/:id/status",
+  authMiddleware,
+  updateBidStatus
+);
 
 module.exports = router;

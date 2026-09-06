@@ -1,3 +1,4 @@
+
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
@@ -5,11 +6,11 @@ require("dotenv").config();
 
 const authRoutes = require("./routes/authRoutes");
 const projectRoutes = require("./routes/projectRoutes");
-const reviewRoutes = require("./routes/reviewRoutes");
-const app = express();
 const bidRoutes = require("./routes/bidRoutes");
-app.use("/api/reviews", reviewRoutes);
-app.use("/api/bids", bidRoutes);
+const reviewRoutes = require("./routes/reviewRoutes");
+
+const app = express();
+
 app.use(
   cors({
     origin: "http://localhost:5173",
@@ -35,6 +36,10 @@ app.get("/api/auth/test", (req, res) => {
 app.use("/api/auth", authRoutes);
 
 app.use("/api/projects", projectRoutes);
+
+app.use("/api/bids", bidRoutes);
+
+app.use("/api/reviews", reviewRoutes);
 
 app.use((req, res) => {
   res.status(404).json({
